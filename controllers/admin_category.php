@@ -2,18 +2,15 @@
 
 class Blog_Admin_CategoryController extends Controller {
 
-
+    /**
+     * Displays a table of categories.
+     *
+     * Route: admin/blog/categories/manage
+     */
     public static function manage()
     {
-        $rows = array();
-        $headers = array(
-            array(
-                'Name',
-                'attributes' => array(
-                    'colspan' => 2
-                )
-            )
-        );
+        $table = Html::table();
+        $table->addHeader()->addCol('Name', array('colspan' => 2));
 
         $cats = Blog::category()->orderBy('name')->all();
 
@@ -21,60 +18,49 @@ class Blog_Admin_CategoryController extends Controller {
         {
             foreach($cats as $c)
             {
-                $rows[] = array(
-                    Html::a()->get($c->name, 'admin/blog/categories/edit/' . $c->id),
-                    array(
-                        Html::a()->get('Delete', 'admin/blog/categories/delete/' . $c->id),
-                        'attributes' => array(
-                            'class' => 'right'
-                        )
-                    )
+                $row = $table->addRow();
+                $row->addCol(Html::a()->get($c->name, 'admin/blog/categories/edit/' . $c->id));
+                $row->addCol(
+                    Html::a()->get('Delete', 'admin/blog/categories/delete/' . $c->id),
+                    array('class' => 'right')
                 );
             }
         }
         else
-        {
-            $rows[] = array(
-                array(
-                    '<em>No categories.</em>',
-                    'attributes' => array(
-                        'colspan' => 2
-                    )
-                )
-            );
-        }
+            $table->addRow()->addCol('<em>No categories.</em>', array('colspan' => 2));
 
         return array(
             'title' => 'Manage Categories',
-            'content' => Html::table()->build($headers, $rows)
+            'content' => $table->render()
         );
     }
 
-
+    /**
+     * Displays a form for creating categories.
+     *
+     * Route: admin/blog/categories/create
+     */
     public static function create()
     {
-        if($_POST)
+        if(isset($_POST['create_category']) && Html::form()->validate())
         {
-            if(Html::form()->validate())
+            if(!Blog::category()->where('name', 'LIKE', $_POST['name'])->first())
             {
-                if(!Blog::category()->where('name', 'LIKE', $_POST['name'])->first())
-                {
-                    $categoryId = Blog::category()->insert(array(
-                        'name' => $_POST['name'],
-                        'slug' => String::slugify($_POST['name'])
-                    ));
+                $categoryId = Blog::category()->insert(array(
+                    'name' => $_POST['name'],
+                    'slug' => String::slugify($_POST['name'])
+                ));
 
-                    if($categoryId)
-                    {
-                        $_POST = array(); // Clear form
-                        Message::ok('Category created successfully.');
-                    }
-                    else
-                        Message::error('Error creating category. Please try again.');
+                if($categoryId)
+                {
+                    $_POST = array(); // Clear form
+                    Message::ok('Category created successfully.');
                 }
                 else
-                    Message::error('A category with that name already exists.');
+                    Message::error('Error creating category. Please try again.');
             }
+            else
+                Message::error('A category with that name already exists.');
         }
 
         $formData[] = array(
@@ -84,7 +70,7 @@ class Blog_Admin_CategoryController extends Controller {
                     'type' => 'text',
                     'validate' => array('required')
                 ),
-                'submit' => array(
+                'create_category' => array(
                     'type' => 'submit',
                     'value' => 'Create Category'
                 )
@@ -97,29 +83,32 @@ class Blog_Admin_CategoryController extends Controller {
         );
     }
 
-
+    /**
+     * Displays a form for editing a category.
+     *
+     * Route: admin/blog/categories/edit/:id
+     *
+     * @param int $id The id of the category to edit.
+     */
     public static function edit($id)
     {
         if(!$cat = Blog::category()->find($id))
             return ERROR_NOTFOUND;
 
-        if($_POST)
+        if(isset($_POST['update_category']) && Html::form()->validate())
         {
-            if(Html::form()->validate())
-            {
-                $status = Blog::category()->where('id', '=', $id)->update(array(
-                    'name' => $_POST['name'],
-                    'slug' => $_POST['slug']
-                ));
+            $status = Blog::category()->where('id', '=', $id)->update(array(
+                'name' => $_POST['name'],
+                'slug' => $_POST['slug']
+            ));
 
-                if($status)
-                {
-                    $cat = Blog::category()->find($id);
-                    Message::ok('Category updated successfully.');
-                }
-                else
-                    Message::error('Error updating category, please try again.');
+            if($status)
+            {
+                $cat = Blog::category()->find($id);
+                Message::ok('Category updated successfully.');
             }
+            else
+                Message::error('Error updating category, please try again.');
         }
 
         $formData[] = array(
@@ -136,7 +125,7 @@ class Blog_Admin_CategoryController extends Controller {
                     'validate' => array('required'),
                     'default_value' => $cat->slug
                 ),
-                'submit' => array(
+                'update_category' => array(
                     'type' => 'submit',
                     'value' => 'Update Category'
                 )
@@ -149,7 +138,13 @@ class Blog_Admin_CategoryController extends Controller {
         );
     }
 
-
+    /**
+     * Deletes a category and redirects back to manage category page.
+     *
+     * Route: admin/blog/categories/delete/:id
+     *
+     * @param int $id The id of the category to delete.
+     */
     public static function delete($id)
     {
         if(Blog::category()->delete($id))
@@ -159,6 +154,5 @@ class Blog_Admin_CategoryController extends Controller {
         
         Url::redirect('admin/blog/categories');
     }
-
 
 }

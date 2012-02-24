@@ -76,13 +76,12 @@
             'callback' => array('admin_post', 'create'),
             'permissions' => array('blog.create_posts')
         ),
-        'admin/blog/posts/edit/:num' => array(
+        'admin/blog/posts/edit/:id' => array(
             'title' => 'Edit',
             'callback' => array('admin_post', 'edit'),
             'permissions' => array('blog.edit_posts', 'blog.edit_my_posts')
         ),
-        'admin/blog/posts/delete/:num' => array(
-            'title' => 'Delete',
+        'admin/blog/posts/delete/:id' => array(
             'callback' => array('admin_post', 'delete'),
             'permissions' => array('blog.delete_posts', 'blog.delete_my_posts')
         ),
@@ -103,13 +102,12 @@
             'callback' => array('admin_category', 'create'),
             'permissions' => array('blog.create_categories')
         ),
-        'admin/blog/categories/edit/:num' => array(
+        'admin/blog/categories/edit/:id' => array(
             'title' => 'Edit',
             'callback' => array('admin_category', 'edit'),
             'permissions' => array('blog.edit_categories')
         ),
-        'admin/blog/categories/delete/:num' => array(
-            'title' => 'Delete',
+        'admin/blog/categories/delete/:id' => array(
             'callback' => array('admin_category', 'delete'),
             'permissions' => array('blog.delete_categories')
         )
